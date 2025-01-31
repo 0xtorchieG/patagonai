@@ -1,0 +1,3 @@
+[submodule "contracts/patagonai-smartcontracts/lib/forge-std"]
+	path = contracts/patagonai-smartcontracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std.git
