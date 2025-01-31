@@ -8,5 +8,12 @@ import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 
 contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
-    constructor() {}
+    IPyth public pyth;
+    IERC20 public immutable token;
+    uint256 private constant MIN_PRICE = 1e16; // 0.01 in 1e18 scale
+
+    constructor(address _pythAddress, address _tokenAddress) {
+        pyth = IPyth(_pythAddress);
+        token = IERC20(_tokenAddress);
+    }
 }
