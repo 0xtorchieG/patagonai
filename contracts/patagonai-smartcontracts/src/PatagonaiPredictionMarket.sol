@@ -30,6 +30,7 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     Market[] public markets;
     
     event MarketCreated(uint256 indexed marketId, string stockTicker, uint256 endTime);
+    event PositionTaken(uint256 indexed marketId, address indexed user, MarketOutcome position, uint256 shares);
 
     constructor(address _pythAddress, address _tokenAddress) {
         pyth = IPyth(_pythAddress);
@@ -53,5 +54,38 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         newMarket.endTime = _endTime;
         
         emit MarketCreated(markets.length - 1, _stockTicker, _endTime);
+    }
+
+    function calculateShares(uint256 amount, uint256 price) internal pure returns (uint256) {
+        return (amount * 1e18) / (price > MIN_PRICE ? price : MIN_PRICE);
+    }
+
+
+    function takePosition(uint256 marketId, MarketOutcome position, uint256 amount) external {
+        Market storage market = markets[marketId];
+        require(block.timestamp < market.endTime, "Market ended");
+        require(position != MarketOutcome.UNDECIDED, "Invalid position");
+        
+        // Get current prices for all positions
+        (uint256 buyPrice, uint256 holdPrice, uint256 sellPrice) = getMarketPrices(marketId); //TODO getMarketPrices
+        
+        // Determine the correct price based on position
+        uint256 positionPrice;
+        if (position == MarketOutcome.BUY) {
+            positionPrice = buyPrice;
+        } else if (position == MarketOutcome.HOLD) {
+            positionPrice = holdPrice;
+        } else {
+            positionPrice = sellPrice;
+        }
+        
+        uint256 shares = calculateShares(amount, positionPrice);
+        market.shares[position] += shares;
+        market.userShares[position][msg.sender] += shares;
+        market.totalShares += shares;
+        market.totalPoolValue += amount;
+        
+        token.transferFrom(msg.sender, address(this), amount);
+        emit PositionTaken(marketId, msg.sender, position, shares);
     }
 }
