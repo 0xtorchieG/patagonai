@@ -34,6 +34,10 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     event MarketResolved(uint256 indexed marketId, MarketOutcome outcome);
     event RewardClaimed(uint256 indexed marketId, address indexed user, uint256 amount);
 
+    function _canSetOwner() internal view virtual override returns (bool) {
+        return msg.sender == owner();
+    }
+
     constructor(address _pythAddress, address _tokenAddress) {
         pyth = IPyth(_pythAddress);
         token = IERC20(_tokenAddress);
@@ -133,5 +137,19 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         }
 
         emit MarketResolved(marketId, market.outcome);
+    }
+
+
+    function claimPayout(uint256 marketId) external nonReentrant {
+        Market storage market = markets[marketId];
+        require(market.outcome != MarketOutcome.UNDECIDED, "Not resolved");
+        require(!market.hasClaimed[msg.sender], "Already claimed");
+        
+        uint256 winningShares = market.userShares[market.outcome][msg.sender];
+        if (winningShares > 0) {
+            uint256 payout = (winningShares * market.totalPoolValue) / market.shares[market.outcome];
+            market.hasClaimed[msg.sender] = true;
+            token.transfer(msg.sender, payout);
+        }
     }
 }
