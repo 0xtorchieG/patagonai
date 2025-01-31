@@ -1,0 +1,11 @@
+[default]
+src = 'src'
+out = 'out'
+libs = ['lib']
+remappings = [
+    '@thirdweb-dev/=node_modules/@thirdweb-dev/',
+    '@pythnetwork/pyth-sdk-solidity/=node_modules/@pythnetwork/pyth-sdk-solidity'
+]
+
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config
