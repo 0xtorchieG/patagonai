@@ -31,6 +31,8 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     
     event MarketCreated(uint256 indexed marketId, string stockTicker, uint256 endTime);
     event PositionTaken(uint256 indexed marketId, address indexed user, MarketOutcome position, uint256 shares);
+    event MarketResolved(uint256 indexed marketId, MarketOutcome outcome);
+    event RewardClaimed(uint256 indexed marketId, address indexed user, uint256 amount);
 
     constructor(address _pythAddress, address _tokenAddress) {
         pyth = IPyth(_pythAddress);
@@ -104,5 +106,32 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         
         token.transferFrom(msg.sender, address(this), amount);
         emit PositionTaken(marketId, msg.sender, position, numberOfShares);
+    }
+
+    function resolveMarket(uint256 marketId) external onlyOwner {
+        Market storage market = markets[marketId];
+        require(block.timestamp >= market.endTime, "Market not ended");
+        require(market.outcome == MarketOutcome.UNDECIDED, "Market already resolved");
+
+        // Get the final price from Pyth
+        PythStructs.Price memory finalPrice = pyth.getPriceNoOlderThan(market.pythPriceId, 86400);
+        require(finalPrice.price != 0, "Invalid Pyth price");
+
+        // Calculate price change percentage (multiplied by 100 to get actual percentage)
+        int256 priceChange = ((finalPrice.price - market.startPrice) * 100) / market.startPrice;
+
+        // Determine outcome based on price change
+        // priceChange > 1% (100 basis points) -> BUY
+        // priceChange < -1% (-100 basis points) -> SELL
+        // -1% <= priceChange <= 1% -> HOLD
+        if (priceChange > 100) {
+            market.outcome = MarketOutcome.BUY;
+        } else if (priceChange < -100) {
+            market.outcome = MarketOutcome.SELL;
+        } else {
+            market.outcome = MarketOutcome.HOLD;
+        }
+
+        emit MarketResolved(marketId, market.outcome);
     }
 }
