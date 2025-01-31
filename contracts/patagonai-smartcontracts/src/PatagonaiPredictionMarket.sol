@@ -106,15 +106,16 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         uint256 holdWeight = market.holdConsensus + market.shares[MarketOutcome.HOLD];
         uint256 sellWeight = market.sellConsensus + market.shares[MarketOutcome.SELL];
         
-        // Calculate prices based on combined weights
-        buyPrice = (buyWeight * 1e18) / totalWeight;
-        holdPrice = (holdWeight * 1e18) / totalWeight;
-        sellPrice = (sellWeight * 1e18) / totalWeight;
+        // Calculate prices directly in USDC units (6 decimals)
+        buyPrice = (buyWeight * 1e6) / totalWeight;
+        holdPrice = (holdWeight * 1e6) / totalWeight;
+        sellPrice = (sellWeight * 1e6) / totalWeight;
 
-        // Ensure minimum prices
-        buyPrice = buyPrice > MIN_PRICE ? buyPrice : MIN_PRICE;
-        holdPrice = holdPrice > MIN_PRICE ? holdPrice : MIN_PRICE;
-        sellPrice = sellPrice > MIN_PRICE ? sellPrice : MIN_PRICE;
+        // Ensure minimum prices (0.01 USDC = 10000 in USDC's 6 decimal system)
+        uint256 MIN_USDC_PRICE = 1e4; // 0.01 USDC
+        buyPrice = buyPrice > MIN_USDC_PRICE ? buyPrice : MIN_USDC_PRICE;
+        holdPrice = holdPrice > MIN_USDC_PRICE ? holdPrice : MIN_USDC_PRICE;
+        sellPrice = sellPrice > MIN_USDC_PRICE ? sellPrice : MIN_USDC_PRICE;
 
         return (buyPrice, holdPrice, sellPrice);
     }
