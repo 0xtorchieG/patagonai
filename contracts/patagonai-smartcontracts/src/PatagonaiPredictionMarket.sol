@@ -107,12 +107,12 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         uint256 sellWeight = market.sellConsensus + market.shares[MarketOutcome.SELL];
         
         // Calculate prices directly in USDC units (6 decimals)
-        buyPrice = (buyWeight * 1e6) / totalWeight;
-        holdPrice = (holdWeight * 1e6) / totalWeight;
-        sellPrice = (sellWeight * 1e6) / totalWeight;
+        buyPrice = (buyWeight * 1e8) / totalWeight;
+        holdPrice = (holdWeight * 1e8) / totalWeight;
+        sellPrice = (sellWeight * 1e8) / totalWeight;
 
-        // Ensure minimum prices (0.01 USDC = 10000 in USDC's 6 decimal system)
-        uint256 MIN_USDC_PRICE = 1e4; // 0.01 USDC
+        // Ensure minimum prices (1 USDC = 1000000 in USDC's 6 decimal system)
+        uint256 MIN_USDC_PRICE = 1e6; // 1 USDC
         buyPrice = buyPrice > MIN_USDC_PRICE ? buyPrice : MIN_USDC_PRICE;
         holdPrice = holdPrice > MIN_USDC_PRICE ? holdPrice : MIN_USDC_PRICE;
         sellPrice = sellPrice > MIN_USDC_PRICE ? sellPrice : MIN_USDC_PRICE;
@@ -139,7 +139,7 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         }
         
         // Calculate amount of tokens needed based on shares and price
-        uint256 amount = (numberOfShares * positionPrice) / 1e18;
+        uint256 amount = numberOfShares * positionPrice;
         require(amount > 0, "Amount too small");
         
         market.shares[position] += numberOfShares;
