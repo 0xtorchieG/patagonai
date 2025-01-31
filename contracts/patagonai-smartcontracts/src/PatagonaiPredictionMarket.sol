@@ -56,18 +56,32 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         emit MarketCreated(markets.length - 1, _stockTicker, _endTime);
     }
 
-    function calculateShares(uint256 amount, uint256 price) internal pure returns (uint256) {
-        return (amount * 1e18) / (price > MIN_PRICE ? price : MIN_PRICE);
+    function getMarketPrices(uint256 marketId) public view returns (uint256 buyPrice, uint256 holdPrice, uint256 sellPrice) {
+        Market storage market = markets[marketId];
+        
+        // If no shares have been purchased yet, return minimum price for all positions
+        if (market.totalShares == 0) {
+            return (MIN_PRICE, MIN_PRICE, MIN_PRICE);
+        }
+
+        // Calculate prices as percentages of total shares (in 1e18 scale)
+        buyPrice = (market.shares[MarketOutcome.BUY] * 1e18) / market.totalShares;
+        holdPrice = (market.shares[MarketOutcome.HOLD] * 1e18) / market.totalShares;
+        sellPrice = (market.shares[MarketOutcome.SELL] * 1e18) / market.totalShares;
+
+        // Ensure minimum prices
+        buyPrice = buyPrice > MIN_PRICE ? buyPrice : MIN_PRICE;
+        holdPrice = holdPrice > MIN_PRICE ? holdPrice : MIN_PRICE;
+        sellPrice = sellPrice > MIN_PRICE ? sellPrice : MIN_PRICE;
     }
 
-
-    function takePosition(uint256 marketId, MarketOutcome position, uint256 amount) external {
+    function takePosition(uint256 marketId, MarketOutcome position, uint256 numberOfShares) external {
         Market storage market = markets[marketId];
         require(block.timestamp < market.endTime, "Market ended");
         require(position != MarketOutcome.UNDECIDED, "Invalid position");
         
         // Get current prices for all positions
-        (uint256 buyPrice, uint256 holdPrice, uint256 sellPrice) = getMarketPrices(marketId); //TODO getMarketPrices
+        (uint256 buyPrice, uint256 holdPrice, uint256 sellPrice) = getMarketPrices(marketId);
         
         // Determine the correct price based on position
         uint256 positionPrice;
@@ -79,13 +93,16 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
             positionPrice = sellPrice;
         }
         
-        uint256 shares = calculateShares(amount, positionPrice);
-        market.shares[position] += shares;
-        market.userShares[position][msg.sender] += shares;
-        market.totalShares += shares;
+        // Calculate amount of tokens needed based on shares and price
+        uint256 amount = (numberOfShares * positionPrice) / 1e18;
+        require(amount > 0, "Amount too small");
+        
+        market.shares[position] += numberOfShares;
+        market.userShares[position][msg.sender] += numberOfShares;
+        market.totalShares += numberOfShares;
         market.totalPoolValue += amount;
         
         token.transferFrom(msg.sender, address(this), amount);
-        emit PositionTaken(marketId, msg.sender, position, shares);
+        emit PositionTaken(marketId, msg.sender, position, numberOfShares);
     }
 }
