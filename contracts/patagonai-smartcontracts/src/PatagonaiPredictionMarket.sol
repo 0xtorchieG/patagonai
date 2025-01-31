@@ -152,4 +152,24 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
             token.transfer(msg.sender, payout);
         }
     }
+
+
+    function getMarketInfo(uint256 marketId) external view returns (
+        string memory stockTicker,
+        uint256 endTime,
+        uint256 totalPoolValue,
+        uint256[3] memory shareAmounts
+    ) {
+        Market storage market = markets[marketId];
+        return (
+            market.stockTicker,
+            market.endTime,
+            market.totalPoolValue,
+            [
+                market.shares[MarketOutcome.BUY],
+                market.shares[MarketOutcome.HOLD],
+                market.shares[MarketOutcome.SELL]
+            ]
+        );
+    }
 }
