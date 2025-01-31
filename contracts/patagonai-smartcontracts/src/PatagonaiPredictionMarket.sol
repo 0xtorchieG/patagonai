@@ -43,11 +43,26 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         token = IERC20(_tokenAddress);
     }
 
+    modifier noActiveMarket(string memory stockTicker) {
+        bool hasActiveMarket = false;
+        for (uint256 i = 0; i < markets.length; i++) {
+            Market storage market = markets[i];
+            if (keccak256(bytes(market.stockTicker)) == keccak256(bytes(stockTicker)) && 
+                block.timestamp < market.endTime &&
+                market.outcome == MarketOutcome.UNDECIDED) {
+                hasActiveMarket = true;
+                break;
+            }
+        }
+        require(!hasActiveMarket, "Active market exists");
+        _;
+    }
+
     function createMarket(
         string memory _stockTicker,
         bytes32 _pythPriceId,
         uint256 _endTime
-    ) external onlyOwner {
+    ) external onlyOwner noActiveMarket(_stockTicker) {
         require(_endTime > block.timestamp, "End time must be future");
         
         PythStructs.Price memory currentPrice = pyth.getPriceNoOlderThan(_pythPriceId, 86400);
@@ -171,5 +186,63 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
                 market.shares[MarketOutcome.SELL]
             ]
         );
+    }
+
+    // Get total number of markets
+    function getMarketsCount() external view returns (uint256) {
+        return markets.length;
+    }
+
+    // Get user's position details for a specific market
+    function getUserPosition(uint256 marketId, address user) external view returns (
+        uint256 buyShares,
+        uint256 holdShares,
+        uint256 sellShares,
+        bool hasClaimed
+    ) {
+        Market storage market = markets[marketId];
+        return (
+            market.userShares[MarketOutcome.BUY][user],
+            market.userShares[MarketOutcome.HOLD][user],
+            market.userShares[MarketOutcome.SELL][user],
+            market.hasClaimed[user]
+        );
+    }
+
+    // Get market status and outcome
+    function getMarketStatus(uint256 marketId) external view returns (
+        MarketOutcome outcome,
+        bool isEnded,
+        int64 startPrice,
+        bytes32 pythPriceId
+    ) {
+        Market storage market = markets[marketId];
+        return (
+            market.outcome,
+            block.timestamp >= market.endTime,
+            market.startPrice,
+            market.pythPriceId
+        );
+    }
+
+    // Calculate potential payout if user wins
+    function calculatePotentialPayout(uint256 marketId, uint256 numberOfShares, MarketOutcome position) external view returns (uint256) {
+        Market storage market = markets[marketId];
+        uint256 hypotheticalWinningShares = market.shares[position] + numberOfShares;
+        return (numberOfShares * market.totalPoolValue) / hypotheticalWinningShares;
+    }
+
+    // Check if an active market exists for a specific stock ticker
+    function getActiveMarketId(string memory stockTicker) external view returns (uint256 marketId, bool exists) {
+        for (uint256 i = 0; i < markets.length; i++) {
+            Market storage market = markets[i];
+            // Compare strings and check if market is still active
+            if (keccak256(bytes(market.stockTicker)) == keccak256(bytes(stockTicker)) && 
+                block.timestamp < market.endTime &&
+                market.outcome == MarketOutcome.UNDECIDED) {
+                return (i, true);
+            }
+        }
+        return (0, false);
     }
 }
