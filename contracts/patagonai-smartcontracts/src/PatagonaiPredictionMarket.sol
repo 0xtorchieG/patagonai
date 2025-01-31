@@ -43,6 +43,10 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     }
 
     constructor(address _pythAddress, address _tokenAddress) {
+        // Initialize the owner first
+        _setupOwner(msg.sender);
+        
+        // Then initialize other contract variables
         pyth = IPyth(_pythAddress);
         token = IERC20(_tokenAddress);
     }
