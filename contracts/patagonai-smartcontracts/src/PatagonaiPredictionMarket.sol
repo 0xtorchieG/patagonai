@@ -22,6 +22,10 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         uint256 endTime;
         uint256 totalPoolValue;
         uint256 totalShares;
+        uint256 buyConsensus;
+        uint256 holdConsensus;
+        uint256 sellConsensus;
+        uint256 totalConsensus;
         mapping(MarketOutcome => uint256) shares;
         mapping(MarketOutcome => mapping(address => uint256)) userShares;
         mapping(address => bool) hasClaimed;
@@ -61,18 +65,28 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     function createMarket(
         string memory _stockTicker,
         bytes32 _pythPriceId,
-        uint256 _endTime
+        uint256 _endTime,
+        uint256 _buyConsensus,
+        uint256 _holdConsensus,
+        uint256 _sellConsensus
     ) external onlyOwner noActiveMarket(_stockTicker) {
         require(_endTime > block.timestamp, "End time must be future");
         
         PythStructs.Price memory currentPrice = pyth.getPriceNoOlderThan(_pythPriceId, 86400);
         require(currentPrice.price != 0, "Invalid Pyth price");
         
+        uint256 totalConsensus = _buyConsensus + _holdConsensus + _sellConsensus;
+        require(totalConsensus > 0, "No consensus data");
+        
         Market storage newMarket = markets.push();
         newMarket.stockTicker = _stockTicker;
         newMarket.pythPriceId = _pythPriceId;
         newMarket.startPrice = currentPrice.price;
         newMarket.endTime = _endTime;
+        newMarket.buyConsensus = _buyConsensus;
+        newMarket.holdConsensus = _holdConsensus;
+        newMarket.sellConsensus = _sellConsensus;
+        newMarket.totalConsensus = totalConsensus;
         
         emit MarketCreated(markets.length - 1, _stockTicker, _endTime);
     }
@@ -80,20 +94,25 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
     function getMarketPrices(uint256 marketId) public view returns (uint256 buyPrice, uint256 holdPrice, uint256 sellPrice) {
         Market storage market = markets[marketId];
         
-        // If no shares have been purchased yet, return minimum price for all positions
-        if (market.totalShares == 0) {
-            return (MIN_PRICE, MIN_PRICE, MIN_PRICE);
-        }
-
-        // Calculate prices as percentages of total shares (in 1e18 scale)
-        buyPrice = (market.shares[MarketOutcome.BUY] * 1e18) / market.totalShares;
-        holdPrice = (market.shares[MarketOutcome.HOLD] * 1e18) / market.totalShares;
-        sellPrice = (market.shares[MarketOutcome.SELL] * 1e18) / market.totalShares;
+        // Calculate total weight combining consensus and actual positions
+        uint256 totalWeight = market.totalConsensus + market.totalShares;
+        
+        // Calculate combined weights for each position
+        uint256 buyWeight = market.buyConsensus + market.shares[MarketOutcome.BUY];
+        uint256 holdWeight = market.holdConsensus + market.shares[MarketOutcome.HOLD];
+        uint256 sellWeight = market.sellConsensus + market.shares[MarketOutcome.SELL];
+        
+        // Calculate prices based on combined weights
+        buyPrice = (buyWeight * 1e18) / totalWeight;
+        holdPrice = (holdWeight * 1e18) / totalWeight;
+        sellPrice = (sellWeight * 1e18) / totalWeight;
 
         // Ensure minimum prices
         buyPrice = buyPrice > MIN_PRICE ? buyPrice : MIN_PRICE;
         holdPrice = holdPrice > MIN_PRICE ? holdPrice : MIN_PRICE;
         sellPrice = sellPrice > MIN_PRICE ? sellPrice : MIN_PRICE;
+
+        return (buyPrice, holdPrice, sellPrice);
     }
 
     function takePosition(uint256 marketId, MarketOutcome position, uint256 numberOfShares) external {
@@ -173,7 +192,8 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         string memory stockTicker,
         uint256 endTime,
         uint256 totalPoolValue,
-        uint256[3] memory shareAmounts
+        uint256[3] memory shareAmounts,
+        uint256[3] memory consensusAmounts
     ) {
         Market storage market = markets[marketId];
         return (
@@ -184,6 +204,11 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
                 market.shares[MarketOutcome.BUY],
                 market.shares[MarketOutcome.HOLD],
                 market.shares[MarketOutcome.SELL]
+            ],
+            [
+                market.buyConsensus,
+                market.holdConsensus,
+                market.sellConsensus
             ]
         );
     }
