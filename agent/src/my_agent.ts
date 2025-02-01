@@ -1,5 +1,6 @@
 import { CdpAgentkit } from "@coinbase/cdp-agentkit-core";
 import { CdpToolkit } from "@coinbase/cdp-langchain";
+import { FinnhubTool } from "./tools/FinnhubTool";
 import { MemorySaver } from "@langchain/langgraph";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
@@ -47,19 +48,23 @@ async function initializeAgent() {
 
   // Initialize CDP AgentKit Toolkit and get tools
   const cdpToolkit = new CdpToolkit(agentkit);
-  const tools = cdpToolkit.getTools();
+  const cdpTools = cdpToolkit.getTools();
+
+  // Add Finnhub tool
+  const finnhubTool = new FinnhubTool(process.env.FINNHUB_API_KEY || "");
+  const tools = [...cdpTools, finnhubTool];
 
   // Store buffered conversation history in memory
   const memory = new MemorySaver();
   const agentConfig = { configurable: { thread_id: "CDP AgentKit Chatbot Example!" } };
 
-  // Create React Agent using the LLM and CDP AgentKit tools
+  // Create React Agent using the LLM and tools
   const agent = createReactAgent({
     llm,
     tools,
     checkpointSaver: memory,
     messageModifier:
-      "You are a helpful agent that can interact onchain using the Coinbase Developer Platform AgentKit...",
+      "You are a helpful agent that can interact onchain using CDP AgentKit and fetch real-time market data...",
   });
 
   // Save wallet data
