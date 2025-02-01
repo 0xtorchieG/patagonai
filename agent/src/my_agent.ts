@@ -8,6 +8,7 @@ import { HumanMessage } from "@langchain/core/messages";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
+import { PredictionMarketTool } from "./tools/PredictionMarketTool";
 
 dotenv.config();
 
@@ -50,9 +51,10 @@ async function initializeAgent() {
   const cdpToolkit = new CdpToolkit(agentkit);
   const cdpTools = cdpToolkit.getTools();
 
-  // Add Finnhub tool
+  // Add Finnhub and PredictionMarket tools
   const finnhubTool = new FinnhubTool(process.env.FINNHUB_API_KEY || "");
-  const tools = [...cdpTools, finnhubTool];
+  const predictionMarketTool = new PredictionMarketTool(agentkit);
+  const tools = [...cdpTools, finnhubTool, predictionMarketTool];
 
   // Store buffered conversation history in memory
   const memory = new MemorySaver();
