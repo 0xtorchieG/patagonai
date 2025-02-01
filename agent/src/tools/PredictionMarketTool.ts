@@ -1,9 +1,7 @@
 import { Tool } from "@langchain/core/tools";
-import { CdpAgentkit } from "@coinbase/cdp-agentkit-core";
-import { readContract } from "@coinbase/coinbase-sdk";
+import { ContractInvocation, readContract } from "@coinbase/coinbase-sdk";
 import { Abi, Address } from "viem";
-import rawContractABI from "../contracts/predictionMarket.json";
-const contractABI = rawContractABI as Abi;
+import contractABI from "../contracts/predictionMarket.json";
 
 export class PredictionMarketTool extends Tool {
   name = "prediction_market";
@@ -11,143 +9,120 @@ export class PredictionMarketTool extends Tool {
     - getMarketInfo <marketId>
     - getActiveMarketId <stockTicker>
     - getMarketStatus <marketId>
-    - getMarketPrices <marketId>
-    - getUserPosition <marketId> <userAddress>
-    - getMarketsCount
     - takePosition <marketId> <position> <shares>
-    - claimPayout <marketId>
-    - calculatePotentialPayout <marketId> <shares> <position>`;
-  
-  private agentkit: CdpAgentkit;
-  private contractAddress = "0x4c5885D0bd88CF56072B4Ba371825b2DC09E436E" as Address;
+    - claimPayout <marketId>`;
 
-  constructor(agentkit: CdpAgentkit) {
+  private wallet: any;
+  private networkId: string;  // Using any for now since we're getting it from AgentKit
+  private contractAddress: Address;
+  private contractAbi: Abi;
+
+  constructor(wallet: any) {
     super();
-    this.agentkit = agentkit;
+    this.wallet = wallet;
+    this.contractAddress = "0x4c5885D0bd88CF56072B4Ba371825b2DC09E436E" as Address;
+    this.contractAbi = contractABI as Abi;
+    this.networkId = "base-sepolia"
+  }
+
+  private serializeBigInt(obj: any): any {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj === 'bigint') return obj.toString();
+    if (Array.isArray(obj)) return obj.map(item => this.serializeBigInt(item));
+    if (typeof obj === 'object') {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [key, this.serializeBigInt(value)])
+      );
+    }
+    return obj;
   }
 
   async _call(input: string): Promise<string> {
     try {
       const [command, ...args] = input.split(" ");
-      const wallet = await this.agentkit.getWallet();
-      const networkId = process.env.NETWORK_ID || "base-sepolia";
 
       switch (command.toLowerCase()) {
+        case "takeposition": {
+          const [marketId, position, shares] = args;
+          const invocation = await this.wallet.invokeContract({
+            contractAddress: this.contractAddress,
+            method: "takePosition",
+            args: { 
+              marketId: BigInt(marketId), 
+              position, 
+              shares 
+            },
+            abi: this.contractAbi
+          }) as ContractInvocation;
+
+          const result = await invocation.wait({
+            intervalSeconds: 1,
+            timeoutSeconds: 30
+          });
+
+          return `Position taken successfully.\nTransaction hash: ${result.getTransactionHash()}\nTransaction link: ${result.getTransactionLink()}`;
+        }
+
         case "getmarketinfo": {
-          const marketId = args[0];
+          const marketId = BigInt(args[0]);
           const result = await readContract({
-            networkId: networkId,
-            abi: contractABI,
+            networkId: this.networkId,
             contractAddress: this.contractAddress,
             method: "getMarketInfo",
-            args: { marketId }
+            args: [marketId],
+            abi: this.contractAbi
           });
-          return JSON.stringify(result);
+          
+          const serialized = this.serializeBigInt(result);
+          return JSON.stringify(serialized, null, 2);
         }
 
         case "getactivemarketid": {
-          const stockTicker = args[0];
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "getActiveMarketId",
-            [stockTicker]
-          );
-          return JSON.stringify({
-            marketId: result[0].toString(),
-            exists: result[1]
+          const stockTicker = args[0].toUpperCase();
+          const result = await readContract({
+            networkId: this.networkId,
+            contractAddress: this.contractAddress,
+            method: "getActiveMarketId",
+            args: [stockTicker],
+            abi: this.contractAbi
           });
+          
+          const serialized = this.serializeBigInt(result);
+          if (!serialized) {
+            return `No active market found for ${stockTicker}`;
+          }
+          return JSON.stringify(serialized, null, 2);
         }
 
         case "getmarketstatus": {
-          const marketId = args[0];
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "getMarketStatus",
-            [marketId]
-          );
-          return JSON.stringify({
-            outcome: result[0],
-            isEnded: result[1],
-            startPrice: result[2].toString(),
-            pythPriceId: result[3]
-          });
-        }
-
-        case "getmarketprices": {
-          const marketId = args[0];
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "getMarketPrices",
-            [marketId]
-          );
-          return JSON.stringify({
-            buyPrice: result[0].toString(),
-            holdPrice: result[1].toString(),
-            sellPrice: result[2].toString()
-          });
-        }
-
-        case "getuserposition": {
-          const [marketId, userAddress] = args;
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "getUserPosition",
-            [marketId, userAddress]
-          );
-          return JSON.stringify({
-            buyShares: result[0].toString(),
-            holdShares: result[1].toString(),
-            sellShares: result[2].toString(),
-            hasClaimed: result[3]
-          });
-        }
-
-        case "getmarketscount": {
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "getMarketsCount",
-            []
-          );
-          return result.toString();
-        }
-
-        case "takeposition": {
-          const [marketId, position, shares] = args;
-          const contractInvocation = await wallet.invokeContract({
+          const marketId = BigInt(args[0]);
+          const result = await readContract({
+            networkId: this.networkId,
             contractAddress: this.contractAddress,
-            method: "takePosition",
-            args: { marketId, position, shares },
-            abi: contractABI
+            method: "getMarketStatus",
+            args: [marketId],
+            abi: this.contractAbi
           });
-          await contractInvocation.wait();
-          return "Position taken successfully";
+          
+          const serialized = this.serializeBigInt(result);
+          return JSON.stringify(serialized, null, 2);
         }
 
         case "claimpayout": {
           const marketId = args[0];
-          await wallet.contract.write(
-            this.contractAddress,
-            contractABI,
-            "claimPayout",
-            [marketId]
-          );
-          return "Payout claimed successfully";
-        }
+          const invocation = await this.wallet.invokeContract({
+            contractAddress: this.contractAddress,
+            method: "claimPayout",
+            args: { marketId },
+            abi: this.contractAbi
+          }) as ContractInvocation;
 
-        case "calculatepotentialpayout": {
-          const [marketId, shares, position] = args;
-          const result = await wallet.contract.read(
-            this.contractAddress,
-            contractABI,
-            "calculatePotentialPayout",
-            [marketId, shares, position]
-          );
-          return `Potential payout: ${result.toString()}`;
+          const result = await invocation.wait({
+            intervalSeconds: 1,
+            timeoutSeconds: 30
+          });
+
+          return `Payout claimed successfully.\nTransaction hash: ${result.getTransactionHash()}\nTransaction link: ${result.getTransactionLink()}`;
         }
 
         default:
@@ -155,7 +130,8 @@ export class PredictionMarketTool extends Tool {
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        return `Error: ${error.message}`;
+        console.error("Contract error:", error);
+        return `Error interacting with contract: ${error.message}`;
       }
       return "An unknown error occurred";
     }
