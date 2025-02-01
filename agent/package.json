@@ -1,0 +1,9 @@
+{
+  "name": "prediction-market-agent",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn src/index.ts"
+  }
+} 
