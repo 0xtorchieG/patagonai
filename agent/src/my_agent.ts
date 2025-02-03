@@ -655,7 +655,7 @@ async function initializeAgent() {
             // Convert args to named parameters
             const namedArgs = methodAbi.inputs.reduce((acc, input, index) => {
                 const value = params.args.args[index];
-                acc[input.name] = input.type === 'uint256' ? BigInt(value) : value;
+                acc[input.name] = (input.type === 'uint256' || input.type === 'uint8') ? value.toString() : value;
                 return acc;
             }, {} as Record<string, any>);
 
@@ -665,10 +665,10 @@ async function initializeAgent() {
             const result = await readContract({
                 networkId: process.env.NETWORK_ID || "base-sepolia",
                 contractAddress: PREDICTION_MARKET_ADDRESS,
-                // method: params.args.method,
-                method: "getMarketInfo",
-                args: { marketId: 0n },
-                // args: namedArgs,
+                method: params.args.method,
+                // method: "getMarketInfo",
+                // args: { marketId: "0" },
+                args: namedArgs,
                 abi: CONTRACT_ABI
             });
 
