@@ -1,9 +1,12 @@
 {
-  "name": "prediction-market-agent",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "ts-node src/index.ts",
-    "build": "tsc",
-    "dev": "ts-node-dev --respawn src/index.ts"
+  "dependencies": {
+    "@coinbase/cdp-langchain": "^0.0.15",
+    "@langchain/langgraph": "^0.2.44",
+    "@langchain/openai": "^0.4.2",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "langchain": "^0.3.15",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
   }
-} 
+}
