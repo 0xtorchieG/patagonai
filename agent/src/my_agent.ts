@@ -11,6 +11,7 @@ import * as fs from "fs";
 import * as readline from "readline";
 import { z } from "zod";
 import { Abi, getContractAddress } from "viem";
+import { PythStockFeedTool } from "./tools/PythStockFeedTool";
 
 dotenv.config();
 
@@ -649,8 +650,9 @@ async function initializeAgent() {
     networkId: process.env.NETWORK_ID || "base-sepolia",
   });
 
-  // Add Finnhub tool for stock data
+  // Add Finnhub and Pyth tools
   const finnhubTool = new FinnhubTool(process.env.FINNHUB_API_KEY || "");
+  const pythStockFeedTool = new PythStockFeedTool();
 
   // Add in initializeAgent before creating the agent
   const readContractTool = new CdpTool({
@@ -720,14 +722,30 @@ async function initializeAgent() {
 
         console.log('Invoking contract with:', {
           method: params.args.method,
-          args: namedArgs
+          args: namedArgs,
+          contractAddress: PREDICTION_MARKET_ADDRESS
         });
+
+        // Log types of each argument
+        console.log('Argument types:');
+        for (const [name, value] of Object.entries(namedArgs)) {
+          const paramType = methodAbi.inputs.find(input => input.name === name)?.type;
+          console.log(`- ${name}: ${paramType} (value: ${value}, type: ${typeof value})`);
+        }
 
         const contractInvocation = await wallet.invokeContract({
           contractAddress: PREDICTION_MARKET_ADDRESS,
           method: params.args.method,
           args: namedArgs,
           abi: CONTRACT_ABI
+        }).catch(error => {
+          console.error('Contract invocation error:', {
+            error: error.message,
+            code: error.code,
+            details: error.details,
+            stack: error.stack
+          });
+          throw error;
         });
 
         const receipt = await contractInvocation.wait();
@@ -736,7 +754,10 @@ async function initializeAgent() {
 
         return `Transaction successful!\nHash: ${txHash}\nLink: ${txLink}`;
       } catch (error) {
-        return `Failed to execute contract: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        console.error('Full error details:', error);
+        return `Failed to execute contract: ${error instanceof Error ? 
+          `${error.message}\n${error.stack}` : 
+          'Unknown error'}`;
       }
     }
   }, agentkit);
@@ -747,7 +768,8 @@ async function initializeAgent() {
     ...cdpToolkit.getTools(),
     readContractTool,
     writeContractTool,
-    finnhubTool
+    finnhubTool,
+    pythStockFeedTool
   ];
 
   // Create the agent
