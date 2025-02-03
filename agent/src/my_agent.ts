@@ -614,6 +614,21 @@ const ReadContractInput = z.object({
   })
 });
 
+// Add write contract input schema
+const WriteContractInput = z.object({
+  args: z.object({
+    method: z.enum([
+      "claimPayout",
+      "createMarket",
+      "resolveMarket",
+      "setOwner",
+      "takePosition"
+    ]).describe("The contract method to call"),
+    args: z.array(z.union([z.string(), z.number()]))
+          .describe("Array of arguments to pass to the method")
+  })
+});
+
 /**
  * Initialize the agent with CDP AgentKit
  *
@@ -666,8 +681,6 @@ async function initializeAgent() {
                 networkId: process.env.NETWORK_ID || "base-sepolia",
                 contractAddress: PREDICTION_MARKET_ADDRESS,
                 method: params.args.method,
-                // method: "getMarketInfo",
-                // args: { marketId: "0" },
                 args: namedArgs,
                 abi: CONTRACT_ABI
             });
@@ -683,11 +696,57 @@ async function initializeAgent() {
     }
   }, agentkit);
 
+  // Add write contract tool
+  const writeContractTool = new CdpTool({
+    name: "write_contract",
+    description: "Execute write operations on the prediction market contract. Example: takePosition requires marketId (number), position (1=Buy,2=Hold,3=Sell), and numberOfShares (number)",
+    argsSchema: WriteContractInput,
+    func: async (wallet: Wallet, params: z.infer<typeof WriteContractInput>) => {
+      try {
+        const methodAbi = CONTRACT_ABI.find(
+          (item) => item.type === "function" && item.name === params.args.method
+        );
+        
+        if (!methodAbi || !methodAbi.inputs) {
+          throw new Error(`Method ${params.args.method} not found in ABI`);
+        }
+
+        // Convert args to named parameters
+        const namedArgs = methodAbi.inputs.reduce((acc, input, index) => {
+          const value = params.args.args[index];
+          acc[input.name] = (input.type === 'uint256' || input.type === 'uint8') ? value.toString() : value;
+          return acc;
+        }, {} as Record<string, any>);
+
+        console.log('Invoking contract with:', {
+          method: params.args.method,
+          args: namedArgs
+        });
+
+        const contractInvocation = await wallet.invokeContract({
+          contractAddress: PREDICTION_MARKET_ADDRESS,
+          method: params.args.method,
+          args: namedArgs,
+          abi: CONTRACT_ABI
+        });
+
+        const receipt = await contractInvocation.wait();
+        const txHash = receipt.getTransactionHash();
+        const txLink = receipt.getTransactionLink();
+
+        return `Transaction successful!\nHash: ${txHash}\nLink: ${txLink}`;
+      } catch (error) {
+        return `Failed to execute contract: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    }
+  }, agentkit);
+
   // Get base CDP tools and add all our custom tools
   const cdpToolkit = new CdpToolkit(agentkit);
   const tools = [
     ...cdpToolkit.getTools(),
     readContractTool,
+    writeContractTool,
     finnhubTool
   ];
 
