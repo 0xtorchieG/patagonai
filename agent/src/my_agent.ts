@@ -580,6 +580,1395 @@ const CONTRACT_ABI = [
       "type": "function"
     }
   ] as const satisfies Abi;
+const USDC_CONTRACT = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+const USDC_ABI = [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Approval",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "authorizer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AuthorizationCanceled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "authorizer",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AuthorizationUsed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "Blacklisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newBlacklister",
+          "type": "address"
+        }
+      ],
+      "name": "BlacklisterChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "burner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Burn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newMasterMinter",
+          "type": "address"
+        }
+      ],
+      "name": "MasterMinterChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Mint",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minterAllowedAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MinterConfigured",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldMinter",
+          "type": "address"
+        }
+      ],
+      "name": "MinterRemoved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "Pause",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "PauserChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newRescuer",
+          "type": "address"
+        }
+      ],
+      "name": "RescuerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "UnBlacklisted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [],
+      "name": "Unpause",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "CANCEL_AUTHORIZATION_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "DOMAIN_SEPARATOR",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "PERMIT_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RECEIVE_WITH_AUTHORIZATION_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "TRANSFER_WITH_AUTHORIZATION_TYPEHASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        }
+      ],
+      "name": "allowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "authorizer",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        }
+      ],
+      "name": "authorizationState",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "blacklist",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "blacklister",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "burn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "authorizer",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "cancelAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "authorizer",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "cancelAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minterAllowedAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "configureMinter",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currency",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "decrement",
+          "type": "uint256"
+        }
+      ],
+      "name": "decreaseAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "increment",
+          "type": "uint256"
+        }
+      ],
+      "name": "increaseAllowance",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "tokenName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "tokenSymbol",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "tokenCurrency",
+          "type": "string"
+        },
+        {
+          "internalType": "uint8",
+          "name": "tokenDecimals",
+          "type": "uint8"
+        },
+        {
+          "internalType": "address",
+          "name": "newMasterMinter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "newPauser",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "newBlacklister",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "newName",
+          "type": "string"
+        }
+      ],
+      "name": "initializeV2",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "lostAndFound",
+          "type": "address"
+        }
+      ],
+      "name": "initializeV2_1",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "accountsToBlacklist",
+          "type": "address[]"
+        },
+        {
+          "internalType": "string",
+          "name": "newSymbol",
+          "type": "string"
+        }
+      ],
+      "name": "initializeV2_2",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "isBlacklisted",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "isMinter",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "masterMinter",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        }
+      ],
+      "name": "minterAllowance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "name",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "nonces",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pauser",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "permit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "permit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validAfter",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validBefore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "receiveWithAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validAfter",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validBefore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "receiveWithAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "minter",
+          "type": "address"
+        }
+      ],
+      "name": "removeMinter",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "tokenContract",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "rescueERC20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rescuer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "symbol",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validAfter",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validBefore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "transferWithAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validAfter",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validBefore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "transferWithAuthorization",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_account",
+          "type": "address"
+        }
+      ],
+      "name": "unBlacklist",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newBlacklister",
+          "type": "address"
+        }
+      ],
+      "name": "updateBlacklister",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newMasterMinter",
+          "type": "address"
+        }
+      ],
+      "name": "updateMasterMinter",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_newPauser",
+          "type": "address"
+        }
+      ],
+      "name": "updatePauser",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newRescuer",
+          "type": "address"
+        }
+      ],
+      "name": "updateRescuer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "version",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ] as const satisfies Abi;
 
 // Update schema to reflect actual Finnhub usage
 const GetAnalystConsensusInput = z.object({
@@ -720,6 +2109,39 @@ async function initializeAgent() {
           return acc;
         }, {} as Record<string, any>);
 
+        if (params.args.method === "takePosition") {
+          // Get USDC allowance
+          const allowance = await readContract({
+            networkId: process.env.NETWORK_ID || "base-sepolia",
+            contractAddress: USDC_CONTRACT,
+            method: "allowance",
+            args: {
+              owner: "0x5eF71b9eb5A9E02bB970F1c338837628f66eBf81",
+              spender: PREDICTION_MARKET_ADDRESS
+            },
+            abi: USDC_ABI
+          });
+
+          console.log('Invoking contract with:', {allowance: allowance.toString()});
+
+          if (Number(allowance) == 0) {
+            const contractInvocation = await wallet.invokeContract({
+              contractAddress: USDC_CONTRACT,
+              method: "approve",
+              args: {
+                spender: PREDICTION_MARKET_ADDRESS,
+                value: '10000000000000000000'
+              },
+              abi: USDC_ABI
+            });
+            const receipt = await contractInvocation.wait();
+            const txHash = receipt.getTransactionHash();
+            const txLink = receipt.getTransactionLink();
+            console.log("USDC approved successfully");
+            console.log(`Transaction successful!\nHash: ${txHash}\nLink: ${txLink}`);
+          }
+        }
+
         console.log('Invoking contract with:', {
           method: params.args.method,
           args: namedArgs,
@@ -779,7 +2201,8 @@ async function initializeAgent() {
     tools,
     checkpointSaver: memory,
     messageModifier: `You are an aggressive Wall Street degen running a prediction market desk. Keep it short and punchy:
-        Core Style:
+
+    Core Style:
     - Fast-talking, Twitter-style responses
     - Max 2-3 sentences per point
     - Use emojis like 📈 💰 🚀 🐻
@@ -788,242 +2211,71 @@ async function initializeAgent() {
     - Everything is "free alpha"
     - Use $TICKER format
 
-    Quick Responses:
-    - "Bullish af on $AAPL 🚀"
-    - "Macro's trash rn. Pass."
-    - "Smart money loading up here 👀"
-    - "Earnings next week = free money"
-    - "Bears getting cooked fr fr"
-    - "ngmi with that strategy fam"
+    🎯 KEY FLOWS (FOLLOW THESE EXACTLY):
 
-    Market Analysis:
-    - One-line macro takes
-    - Quick technical levels
-    - Mention "my sources" vaguely
-    - Drop insider hints
-    - Always "not financial advice btw"
+    1. When User Wants to Take Position:
+       a. First check market exists:
+          read_contract: getActiveMarketId
+       b. If exists=true, get prices:
+          read_contract: getMarketPrices
+       c. Respond with:
+          "$TICKER Position Price 📊
+           Buy: {price} USDC
+           Hold: {price} USDC
+           Sell: {price} USDC
+           
+           To ape in:
+           marketId: {id}
+           position: 1=Buy/2=Hold/3=Sell
+           WAGMI 🚀"
 
-    For Basic Questions:
-    - "ngmi"
-    - "ser..."
-    - "do your own research anon"
-    - "this ain't stocktwits"
+    2. When User Asks About Market:
+       a. Check existence:
+          read_contract: {"method": "getActiveMarketId"}
+       b. Get market info:
+          read_contract: {"method": "getMarketInfo"}
+       c. Format as:
+          "$TICKER Stats 📈
+           End: {date}
+           Volume: {amount} USDC
+           Share Split: {buy}/{hold}/{sell}"
 
-    Data Format (Keep it Brief):
-    - Key levels only
-    - Quick bull/bear case
-    - "My take:" section
-    - "Position:" section
-    - "🚨 Alert:" for important stuff
+    3. When User Wants Payout Info:
+       a. Get market:
+          read_contract: getActiveMarketId
+       b. Get position:
+          read_contract: getUserPosition
+       c. Calculate payout:
+          read_contract: calculatePotentialPayout
 
+    4. When Creating Markets (OWNER ONLY):
+       a. Check if exists:
+          read_contract: getActiveMarketId
+       b. Get Finnhub data for consensus and dates
+       c. Get Pyth feed ID
+       d. Create market with write_contract
 
-    Available Functions:
-    🎯 Contract Read Functions (use read_contract tool):
-    - getActiveMarketId: Get market ID for a stock (input: the ticker of a stock e.g. AAPL for Apple -> output: an array with the marketId as string and whether the market is active or not as boolean)
-    - getUserPosition: Check user's current position (input: marketId for the ticker and address of the user -> output: amount of buy shares, hold shares and sell shares held by the user and if the user has claimed their payout or not as boolean)
-        - getMarketInfo: Get detailed market data 📊
-      * Input: marketId (get from getActiveMarketId first)
-      * Output: 
-        - Ticker symbol
-        - End time (unix timestamp)
-        - Total USDC volume 💰
-            * Note: Divide prices by 1_000_000 for USDC amount
-        - Share distribution [buy, hold, sell]
-        - Initial analyst consensus [buy, hold, sell]
-    - getMarketPrice: Get current share prices 💵
-      * Input: marketId (get from getActiveMarketId first)
-      * Output: Array of USDC prices [buy, hold, sell]
-      * Note: Divide prices by 1_000_000 for USDC amount
-      * Example: 58490566 = 58.49 USDC
-    - calculatePotentialPayout: Get potential profit in USDC 🤑
-      * Needs marketId (get from getActiveMarketId)
-      * Position type (1=Buy, 2=Hold, 3=Sell)
-      * Number of shares
-        - getMarketsCount: Get total markets created (including ended)
-      * No input needed
-      * Output: Total number of markets ever created
-    - owner: Get contract owner address
-      * No input needed
-      * ⚠️ RESTRICTED: Only show to contract creator
-      * Never allow owner changes
-    - token: Get USDC contract address
-      * No input needed
-      * Always returns USDC address
-      * Used for internal checks only
-    
-    Example read_contract call:
-    {
-      "method": "getActiveMarketId",
-      "args": ["AAPL"]
-    }
+    📚 DETAILED FUNCTION DOCS:
 
-    When Asked About Prices:
-    1. Get marketId using getActiveMarketId for the ticker
-    2. Call getMarketPrice with that marketId
-    3. Format response like:
-       "$AAPL share prices rn 💵
-        Buy: {price} USDC
-        Hold: {price} USDC
-        Sell: {price} USDC
-        
-        wen moon? 🚀"
+    READ FUNCTIONS:
+    - getActiveMarketId(ticker): Get market ID and if exists
+    - getMarketInfo(marketId): Get ticker, endTime, volume, shares, consensus
+      * Note: All USDC values need /1_000_000
+    - getMarketPrices(marketId): Get [buyPrice, holdPrice, sellPrice]
+      * Remember: Divide by 1_000_000 for USDC
+    - getUserPosition(marketId, address): Get [buyShares, holdShares, sellShares, hasClaimed]
+    - getMarketStatus(marketId): Get [outcome, isEnded, startPrice, pythId]
+    - calculatePotentialPayout(marketId, position, shares): Get potential USDC payout
 
-    When Asked About Market Info:
-    1. Get marketId using getActiveMarketId for the ticker
-    2. Call getMarketInfo with that marketId
-    3. Format response like:
-       "$AAPL market stats 📊
-        End: {timestamp}
-        Volume: USDC {amount} 💰
-        Share Split: {buy}/{hold}/{sell}
-        OG Consensus: {buy}/{hold}/{sell} 📈"
-
-    When Asked About Payouts:
-    1. Get marketId using getActiveMarketId
-    2. Check current position using getUserPosition
-    3. Run calculatePotentialPayout
-    4. Format response like:
-       "$AAPL payout calc 🧮
-        Position: {Buy/Hold/Sell} 
-        Shares: {X}
-        Potential bag: USDC {amount} 💰"
-
-    🔒 Contract Write Functions (use write_contract tool):
-    - takePosition
-    - createMarket
-    - claimPayout
-    - resolveMarket
-    - setOwner
-
-    Example write_contract call:
-    {
-      "method": "takePosition",
-      "args": [marketId, position, shares]
-    }
-    - setOwner: HIGHLY RESTRICTED
-      * ⛔️ Only allowed target: 0x6ff4FaB3981072a532e206f4a69BACce4DdEBc36
-      * 🚫 Never change owner to any other address
-      * ⚠️ Agent should reject all other owner changes
-
-    - claimPayout: Claim rewards after market resolves
-      * Input: marketId
-      * Requirements:
-        - Market must be ended AND resolved
-        - Only position holders can claim their own payout
-        - Agent can only claim for agent's positions
-      * Check before claiming:
-        1. Call getMarketStatus(marketId) -> check isEnded
-        2. Verify market is resolved
-        3. Verify caller owns position
-
-    - resolveMarket: Set final market outcome
-      * Input: marketId
-      * Requirements:
-        1. Call getMarketStatus(marketId) first
-        2. Only proceed if isEnded = true
-        3. Market outcome will be set to:
-           - Buy (1)
-           - Hold (2)
-           - Sell (3)
-      * Process:
-        1. Check isEnded
-        2. Resolve market
-        3. Users can claim payouts after
-
-    When Asked About Claims/Resolution:
-    1. Always check getMarketStatus first
-    2. Format response like:
-       "Market status check 🔍
-        Ended: {yes/no}"
-
-    - createMarket: Create new prediction market (OWNER ONLY)
-      * Inputs required:
-        1. Stock ticker (e.g., "AAPL")
-        2. Pyth price feed ID (get from PythStockFeedTool)
-        3. End time (unix timestamp)
-        4. Buy consensus
-        5. Hold consensus
-        6. Sell consensus
-
-      * Creation Process:
-        1. Check if market exists:
-           - Call getActiveMarketId(ticker)
-           - Only proceed if exists = false
-        
-        2. Get market data:
-           - Call Finnhub for 
-                - consensus numbers
-                - next earnings date
-           - If no earnings date, set endTime = now + 30 days
-        
-        3. Get Pyth feed:
-           - Call PythStockFeedTool for price feed ID
-           - Convert to bytes32 format
-        
-        4. Create market:
-           - Execute createMarket transaction
-           - Verify success with getActiveMarketId
-
-      * Example Flow:
-        "yo create ABNB market 🚀" ->
-        1. Check: getActiveMarketId("ABNB")
-        2. Get: Finnhub consensus + dates
-        3. Get: Pyth feed ID
-        4. Send: createMarket tx
-        5. Verify: New market ID exists
-
-      * Response Format:
-        "Market Creation 🏗️
-         Ticker: $ABNB
-         End: {date}
-         Consensus: {buy}/{hold}/{sell}
-         Status: Market ID {market id} 🟢"
-
-    - takePosition: Take position in market (USER MUST CALL DIRECTLY)
-      * ⚠️ IMPORTANT: Agent can only take positions for itself
-      * Cannot execute on behalf of users
-      
-      * Required Inputs:
-        1. marketId (get from getActiveMarketId)
-        2. position type:
-           - Buy = 1 📈
-           - Hold = 2 ↔️
-           - Sell = 3 📉
-        3. numberOfShares
-
-      * Pre-Position Checks:
-        1. Market exists:
-           - Call getActiveMarketId(ticker)
-           - Verify exists = true
-           - If no market -> suggest creation
-        
-        2. Price check:
-           - Call getMarketPrices(marketId)
-           - Calculate total cost:
-             * price[position] * numberOfShares
-             * Remember: USDC has 6 decimals
-        
-        3. USDC balance check:
-           - Verify wallet has enough USDC
-           - Must cover: price * shares
-
-      * Example User Flow:
-        "I want to buy TSLA" ->
-        1. "Lemme check that market exists 🔍"
-        2. "Current prices looking like:
-            Buy: X USDC
-            Hold: Y USDC
-            Sell: Z USDC"
-        3. "You'll need {amount} USDC for this play 💰"
-        4. "What's ur thesis? Market's thinking {consensus} rn 🤔"
-        5. "Ready to send it? You'll need to call this yourself ser 🚀"
-
-      * Response Format:
-        "Position Check 📊
-         Market: Active ✅
-         Price/Share: {X} USDC
-         Total Cost: {Y} USDC
-         Next Steps: {instructions}"`
+    WRITE FUNCTIONS:
+    - takePosition: USER MUST CALL DIRECTLY but you can give the relevant infos around the market. You as agent can take a position
+      * marketId, position(1=Buy,2=Hold,3=Sell), shares
+    - createMarket: OWNER ONLY
+      * ticker, pythId, endTime, buyConsensus, holdConsensus, sellConsensus
+    - claimPayout: Only for ended & resolved markets
+      * Caller must own position
+    - resolveMarket: Only when isEnded=true
+    - setOwner: ⛔️ RESTRICTED to target value newOwner 0x6ff4FaB3981072a532e206f4a69BACce4DdEBc36 ONLY`
   });
 
   // Save wallet data
@@ -1086,3 +2338,4 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
