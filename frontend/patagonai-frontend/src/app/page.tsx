@@ -1,100 +1,49 @@
 "use client";
 
-import Image from "next/image";
 import { ConnectButton } from "thirdweb/react";
-import thirdwebIcon from "@public/thirdweb.svg";
 import { client } from "./client";
+import { baseSepolia } from "thirdweb/chains";
+import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="p-4 pb-10 min-h-[100vh] flex items-center justify-center container max-w-screen-lg mx-auto">
-      <div className="py-20">
-        <Header />
-
-        <div className="flex justify-center mb-20">
+    <main className="min-h-screen flex items-center justify-center bg-base-200">
+      <div className="card w-[32rem] bg-base-100 shadow-xl">
+        <div className="card-body items-center text-center">
+          <div className="relative w-80 h-80 mb-6">
+            <Image
+              src="/agent-banker.png"
+              alt="Gen Z Wall Street Banker"
+              width={400}
+              height={400}
+              priority
+              className="shadow-lg"
+            />
+          </div>
+          <h1 className="card-title text-4xl font-bold mb-4">PatagonAI 🚀</h1>
+          <p className="text-2xl mb-4 font-semibold">AI-Powered Prediction Markets 🤖</p>
+          <p className="text-xl mb-8 font-bold">
+            Think You Can Beat Wall Street? 📈
+            <br/>
+            Put on your vest and bring your best alpha 
+            <br/>
+            <span >WAGMI 💰</span>
+          </p>
+          
           <ConnectButton
             client={client}
+            accountAbstraction={{
+              chain: baseSepolia,
+              sponsorGas: true,
+            }}
             appMetadata={{
-              name: "Example App",
-              url: "https://example.com",
+              name: "PatagonAI Prediction Markets",
+              url: "https://patagonai.xyz",
             }}
           />
         </div>
-
-        <ThirdwebResources />
       </div>
     </main>
   );
 }
 
-function Header() {
-  return (
-    <header className="flex flex-col items-center mb-20 md:mb-20">
-      <Image
-        src={thirdwebIcon}
-        alt=""
-        className="size-[150px] md:size-[150px]"
-        style={{
-          filter: "drop-shadow(0px 0px 24px #a726a9a8)",
-        }}
-      />
-
-      <h1 className="text-2xl md:text-6xl font-semibold md:font-bold tracking-tighter mb-6 text-zinc-100">
-        thirdweb SDK
-        <span className="text-zinc-300 inline-block mx-1"> + </span>
-        <span className="inline-block -skew-x-6 text-blue-500"> Next.js </span>
-      </h1>
-
-      <p className="text-zinc-300 text-base">
-        Read the{" "}
-        <code className="bg-zinc-800 text-zinc-300 px-2 rounded py-1 text-sm mx-1">
-          README.md
-        </code>{" "}
-        file to get started.
-      </p>
-    </header>
-  );
-}
-
-function ThirdwebResources() {
-  return (
-    <div className="grid gap-4 lg:grid-cols-3 justify-center">
-      <ArticleCard
-        title="thirdweb SDK Docs"
-        href="https://portal.thirdweb.com/typescript/v5"
-        description="thirdweb TypeScript SDK documentation"
-      />
-
-      <ArticleCard
-        title="Components and Hooks"
-        href="https://portal.thirdweb.com/typescript/v5/react"
-        description="Learn about the thirdweb React components and hooks in thirdweb SDK"
-      />
-
-      <ArticleCard
-        title="thirdweb Dashboard"
-        href="https://thirdweb.com/dashboard"
-        description="Deploy, configure, and manage your smart contracts from the dashboard."
-      />
-    </div>
-  );
-}
-
-function ArticleCard(props: {
-  title: string;
-  href: string;
-  description: string;
-}) {
-  return (
-    <a
-      href={props.href + "?utm_source=next-template"}
-      target="_blank"
-      className="flex flex-col border border-zinc-800 p-4 rounded-lg hover:bg-zinc-900 transition-colors hover:border-zinc-700"
-    >
-      <article>
-        <h2 className="text-lg font-semibold mb-2">{props.title}</h2>
-        <p className="text-sm text-zinc-400">{props.description}</p>
-      </article>
-    </a>
-  );
-}
