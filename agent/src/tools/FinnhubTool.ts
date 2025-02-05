@@ -56,6 +56,7 @@ export class FinnhubTool extends Tool {
         } : "No recommendation data available",
         nextEarningsCall: nextEarnings ? {
           date: nextEarnings.date,
+          timestamp: Math.floor(new Date(nextEarnings.date).getTime() / 1000),
           hour: nextEarnings.hour,
           estimate: nextEarnings.epsEstimate,
           actual: nextEarnings.epsActual
