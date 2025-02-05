@@ -22,7 +22,7 @@ Coinbase.configure({
   useServerSigner: true 
 });
 
-const PREDICTION_MARKET_ADDRESS = "0x4c5885D0bd88CF56072B4Ba371825b2DC09E436E";
+const PREDICTION_MARKET_ADDRESS = "0xb0d0C75c588811B436B1379160452fE4a4fE65D2";
 const CONTRACT_ABI = [
     {
       "inputs": [
@@ -2167,6 +2167,13 @@ async function initializeAgent() {
             details: error.details,
             stack: error.stack
           });
+
+          // Special handling for createMarket Pyth price staleness
+          if (params.args.method === "createMarket" && 
+              error.apiCode === "execution_reverted") {
+            throw new Error("Cannot create market: Pyth price feed is stale. Try again later when fresh price data is available.");
+          }
+          
           throw error;
         });
 
