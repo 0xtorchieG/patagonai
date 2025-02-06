@@ -1,11 +1,18 @@
 "use client";
 
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client } from "./client";
 import { baseSepolia } from "thirdweb/chains";
 import Image from "next/image";
+import Dashboard from "@/components/Dashboard";
 
 export default function Home() {
+  const address = useActiveAccount();
+
+  if (address) {
+    return <Dashboard />;
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-base-200">
       <div className="card w-[32rem] bg-base-100 shadow-xl">
