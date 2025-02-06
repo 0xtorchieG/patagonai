@@ -1,19 +1,42 @@
 import { useState, useEffect } from "react";
+import { useReadContract } from "thirdweb/react";
+import { client } from "../app/client";
+import { getContract } from "thirdweb";
+import { baseSepolia } from "thirdweb/chains";
+import { MarketDetails } from "./MarketDetails";
 
-type MarketCreatedEvent = {
-  marketId: string;
+const contract = getContract({
+  client,
+  address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!,
+  chain: baseSepolia,
+});
+
+type MarketEvent = {
+  marketId: number;
   stockTicker: string;
   endTime: string;
 };
 
+type MarketInfo = [string, bigint, bigint, [bigint, bigint, bigint], [bigint, bigint, bigint]];
+
+type Market = {
+  marketId: number;
+  stockTicker: string;
+  endTime: string;
+  totalPoolValue: bigint;
+  shareAmounts: [bigint, bigint, bigint];
+  consensusAmounts: [bigint, bigint, bigint];
+};
+
 export default function MarketsSection() {
   const [activeTab, setActiveTab] = useState<'live' | 'ended'>('live');
-  const [markets, setMarkets] = useState<MarketCreatedEvent[]>([]);
+  const [marketEvents, setMarketEvents] = useState<MarketEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch market events from API
   useEffect(() => {
-    const fetchMarkets = async () => {
+    const fetchMarketEvents = async () => {
       try {
         const response = await fetch('/api/markets');
         const data = await response.json();
@@ -23,7 +46,7 @@ export default function MarketsSection() {
           return;
         }
         
-        setMarkets(data.markets || []);
+        setMarketEvents(data.markets || []);
       } catch (error) {
         console.error("Error fetching markets:", error);
         setError("Failed to fetch markets");
@@ -32,8 +55,9 @@ export default function MarketsSection() {
       }
     };
 
-    fetchMarkets();
+    fetchMarketEvents();
   }, []);
+
 
   if (isLoading) {
     return (
@@ -76,30 +100,27 @@ export default function MarketsSection() {
       </div>
 
       <div className="space-y-4 overflow-auto h-[calc(100vh-8rem)]">
-        {!markets || markets.length === 0 ? (
+        {!marketEvents || marketEvents.length === 0 ? (
           <div className="text-center text-lg">No markets available</div>
         ) : (
-          markets.map((market) => (
-            <div key={market.marketId} className="card bg-base-200 shadow-xl">
-              <div className="card-body">
-                <h3 className="card-title">
-                  ${market.stockTicker}
-                  <div className="badge badge-primary">
-                    {new Date(Number(market.endTime) * 1000) > new Date() ? 'Live' : 'Ended'}
-                  </div>
-                </h3>
-                <div className="stats stats-vertical lg:stats-horizontal shadow">
-                  <div className="stat">
-                    <div className="stat-title">Market ID</div>
-                    <div className="stat-value text-sm">{market.marketId}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-title">End Time</div>
-                    <div className="stat-value text-sm">
-                      {new Date(Number(market.endTime) * 1000).toLocaleDateString()}
+          marketEvents.map((market) => (
+            <div key={market.marketId} className="collapse collapse-arrow bg-base-200">
+              <input type="checkbox" /> 
+              <div className="collapse-title">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold">
+                    ${market.stockTicker}
+                    <div className="badge badge-primary ml-2">
+                      {new Date(Number(market.endTime) * 1000) > new Date() ? 'Live' : 'Ended'}
                     </div>
+                  </h3>
+                  <div className="text-sm opacity-70">
+                    Ends: {new Date(Number(market.endTime) * 1000).toLocaleDateString()}
                   </div>
                 </div>
+              </div>
+              <div className="collapse-content">
+                <MarketDetails marketId={market.marketId} />
               </div>
             </div>
           ))
