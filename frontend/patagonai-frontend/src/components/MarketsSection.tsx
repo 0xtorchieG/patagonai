@@ -17,6 +17,8 @@ type MarketEvent = {
   endTime: string;
   logoUrl?: string;
   companyName?: string;
+  isResolved: boolean;
+  resolvedAt: number | null;
 };
 
 type MarketInfo = [string, bigint, bigint, [bigint, bigint, bigint], [bigint, bigint, bigint]];
@@ -165,8 +167,18 @@ export default function MarketsSection() {
                         <span className="text-sm opacity-70">{companyData[market.stockTicker].name}</span>
                       )}
                     </div>
-                    <div className="badge badge-primary">
-                      {new Date(Number(market.endTime) * 1000) > new Date() ? 'Live' : 'Ended'}
+                    <div className="flex gap-2">
+                      <div className={`badge ${new Date(Number(market.endTime) * 1000) > new Date() 
+                        ? 'bg-primary text-primary-content' 
+                        : 'badge-ghost'}`}
+                      >
+                        {new Date(Number(market.endTime) * 1000) > new Date() ? 'Live' : 'Ended'}
+                      </div>
+                      {market.isResolved && (
+                        <div className="badge bg-secondary text-secondary-content">
+                          Resolved {market.resolvedAt && `(${new Date(market.resolvedAt * 1000).toLocaleDateString()})`}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-sm opacity-70">

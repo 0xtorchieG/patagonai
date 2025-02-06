@@ -13,11 +13,27 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      colors: {
+        primary: "#3B82F6",    // Bright blue
+        secondary: "#10B981",  // Emerald
+        accent: "#F59E0B",     // Amber
+        neutral: "#374151",    // Cool gray
+      }
     },
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["light", "dark"],
+    themes: [{
+      dark: {
+        ...require("daisyui/src/theming/themes")["dark"],
+        primary: "#3B82F6",    // Bright blue
+        secondary: "#10B981",  // Emerald
+        accent: "#F59E0B",     // Amber
+        success: "#22C55E",    // Green
+        warning: "#F59E0B",    // Amber
+        error: "#EF4444",      // Red
+      }
+    }],
   },
 };
 
