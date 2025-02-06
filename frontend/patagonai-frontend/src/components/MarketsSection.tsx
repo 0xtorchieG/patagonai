@@ -121,7 +121,7 @@ export default function MarketsSection() {
   }
 
   return (
-    <div className="w-1/2 h-screen bg-base-100 p-4">
+    <div className="w-1/2 p-4">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Markets 📊</h2>
         <div className="tabs tabs-boxed">
@@ -146,7 +146,7 @@ export default function MarketsSection() {
         </div>
       </div>
 
-      <div className="space-y-4 overflow-auto h-[calc(100vh-8rem)]">
+      <div className="space-y-4 overflow-auto max-h-[calc(100vh-16rem)]">
         {!filteredMarkets || filteredMarkets.length === 0 ? (
           <div className="text-center text-lg">No markets available</div>
         ) : (

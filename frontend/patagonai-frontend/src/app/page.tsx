@@ -5,6 +5,7 @@ import { client } from "./client";
 import { baseSepolia } from "thirdweb/chains";
 import Image from "next/image";
 import Dashboard from "@/components/Dashboard";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   const address = useActiveAccount();
@@ -49,6 +50,7 @@ export default function Home() {
             }}
           />
         </div>
+        <Footer />
       </div>
     </main>
   );
