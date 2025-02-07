@@ -22,7 +22,17 @@ Coinbase.configure({
   useServerSigner: true 
 });
 
-const PREDICTION_MARKET_ADDRESS = "0xb0d0C75c588811B436B1379160452fE4a4fE65D2";
+// Use environment variables instead
+const PREDICTION_MARKET_ADDRESS = process.env.PREDICTION_MARKET_ADDRESS;
+const USDC_CONTRACT = process.env.USDC_CONTRACT;
+
+// Add validation to ensure environment variables are set
+if (!PREDICTION_MARKET_ADDRESS || !USDC_CONTRACT) {
+  throw new Error(
+    'Missing required environment variables. Please ensure PREDICTION_MARKET_ADDRESS and USDC_CONTRACT are set.'
+  );
+}
+
 const CONTRACT_ABI = [
     {
       "inputs": [
@@ -580,7 +590,6 @@ const CONTRACT_ABI = [
       "type": "function"
     }
   ] as const satisfies Abi;
-const USDC_CONTRACT = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
 const USDC_ABI = [
     {
       "anonymous": false,
@@ -2226,17 +2235,25 @@ async function initializeAgent() {
        b. If exists=true, get prices:
           read_contract: getMarketPrices
        c. Respond with:
-          "$TICKER Position Price 📊
+          "🎯 ACTION_REQUIRED_TAKE_POSITION
+          $TICKER Position Price 📊
            Buy: {price} USDC
            Hold: {price} USDC
            Sell: {price} USDC
            
-           To ape in:
            marketId: {id}
            position: 1=Buy/2=Hold/3=Sell
-           WAGMI 🚀"
+           numberOfShares: {shares}"
 
-    2. When User Asks About Market:
+    2. When User Wants to Claim Payout:
+       a. Check if market resolved:
+          read_contract: getMarketStatus
+       b. If resolved, respond with:
+          "💰 ACTION_REQUIRED_CLAIM_PAYOUT
+           Market ID: {id}
+           Ready to claim your payout!"
+
+    3. When User Asks About Market:
        a. Check existence:
           read_contract: {"method": "getActiveMarketId"}
        b. Get market info:
@@ -2246,14 +2263,6 @@ async function initializeAgent() {
            End: {date}
            Volume: {amount} USDC
            Share Split: {buy}/{hold}/{sell}"
-
-    3. When User Wants Payout Info:
-       a. Get market:
-          read_contract: getActiveMarketId
-       b. Get position:
-          read_contract: getUserPosition
-       c. Calculate payout:
-          read_contract: calculatePotentialPayout
 
     4. When Creating Markets (OWNER ONLY):
        a. Check if exists:
