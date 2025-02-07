@@ -32,6 +32,7 @@ export async function GET() {
     return Response.json({
       markets: createdData.data.map((event: any) => {
         const marketId = event.decoded.indexedParams.marketId;
+        console.log(event.decoded.nonIndexedParams);
         return {
           marketId,
           stockTicker: event.decoded.nonIndexedParams.stockTicker,
