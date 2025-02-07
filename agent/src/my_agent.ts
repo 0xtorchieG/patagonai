@@ -12,6 +12,7 @@ import * as readline from "readline";
 import { z } from "zod";
 import { Abi, getContractAddress } from "viem";
 import { PythStockFeedTool } from "./tools/PythStockFeedTool";
+import * as path from 'path';
 
 dotenv.config();
 
@@ -23,8 +24,8 @@ Coinbase.configure({
 });
 
 // Use environment variables instead
-const PREDICTION_MARKET_ADDRESS = process.env.PREDICTION_MARKET_ADDRESS;
-const USDC_CONTRACT = process.env.USDC_CONTRACT;
+const PREDICTION_MARKET_ADDRESS = (process.env.PREDICTION_MARKET_ADDRESS || "0x0000000000000000000000000000000000000000") as `0x${string}`;
+const USDC_CONTRACT = (process.env.USDC_CONTRACT || "0x0000000000000000000000000000000000000000") as `0x${string}`;
 
 // Add validation to ensure environment variables are set
 if (!PREDICTION_MARKET_ADDRESS || !USDC_CONTRACT) {
@@ -2028,6 +2029,39 @@ const WriteContractInput = z.object({
   })
 });
 
+// Add after other constants
+const TRADING_THESIS_PATH = path.join(__dirname, '../data/trading_thesis.json');
+
+// Function to save trading thesis
+function saveThesis(ticker: string, position: string, reason: string) {
+  try {
+    // Create data directory if it doesn't exist
+    const dataDir = path.dirname(TRADING_THESIS_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // Read existing data
+    let theses: Record<string, any> = {};
+    if (fs.existsSync(TRADING_THESIS_PATH)) {
+      theses = JSON.parse(fs.readFileSync(TRADING_THESIS_PATH, 'utf8'));
+    }
+
+    // Add new thesis
+    theses[`${Date.now()}`] = {
+      ticker,
+      position: position.toLowerCase(), // normalize to 'buy', 'hold', or 'sell'
+      reason,
+      timestamp: new Date().toISOString()
+    };
+
+    // Save back to file
+    fs.writeFileSync(TRADING_THESIS_PATH, JSON.stringify(theses, null, 2));
+  } catch (error) {
+    console.error('Failed to save trading thesis:', error);
+  }
+}
+
 /**
  * Initialize the agent with CDP AgentKit
  *
@@ -2230,20 +2264,28 @@ async function initializeAgent() {
     🎯 KEY FLOWS (FOLLOW THESE EXACTLY):
 
     1. When User Wants to Take Position:
-       a. First check market exists:
-          read_contract: getActiveMarketId
-       b. If exists=true, get prices:
-          read_contract: getMarketPrices
-       c. Respond with:
-          "🎯 ACTION_REQUIRED_TAKE_POSITION
-          $TICKER Position Price 📊
-           Buy: {price} USDC
-           Hold: {price} USDC
-           Sell: {price} USDC
+       a. If no reason provided, respond with:
+          "Yo degen! 🤔 Can't let you ape in without a thesis.
+           Why do you think $TICKER will {position}? 
+           Give me your alpha before I show you the trade details!"
            
-           marketId: {id}
-           position: 1=Buy/2=Hold/3=Sell
-           numberOfShares: {shares}"
+       b. If reason provided, then:
+          - Check market exists:
+            read_contract: getActiveMarketId
+          - If exists=true, get prices:
+            read_contract: getMarketPrices
+          - Respond with:
+            "🎯 ACTION_REQUIRED_TAKE_POSITION
+            $TICKER Position Price 📊
+             Buy: {price} USDC
+             Hold: {price} USDC
+             Sell: {price} USDC
+             
+             marketId: {id}
+             position: 1=Buy/2=Hold/3=Sell
+             numberOfShares: {shares}
+             
+             Your thesis: {user_reason} 🧠"
 
     2. When User Wants to Claim Payout:
        a. Check if market resolved:
@@ -2327,7 +2369,23 @@ async function runChatMode(agent: any, config: any) {
 
       for await (const chunk of stream) {
         if ("agent" in chunk) {
-          console.log(chunk.agent.messages[0].content);
+          const response = chunk.agent.messages[0].content;
+          console.log(response);
+
+          // Parse and save thesis if it's a position action
+          if (response.includes('ACTION_REQUIRED_TAKE_POSITION')) {
+            try {
+              const thesis = response.split('Your thesis: ')[1].split('🧠')[0].trim();
+              const ticker = response.match(/\$([A-Z]+)/)?.[1] || '';
+              const position = response.includes('position: 1') ? 'buy' : 
+                              response.includes('position: 2') ? 'hold' : 'sell';
+
+              saveThesis(ticker, position, thesis);
+              console.log('Trading thesis saved successfully');
+            } catch (error) {
+              console.error('Failed to save trading thesis:', error);
+            }
+          }
         } else if ("tools" in chunk) {
           console.log(chunk.tools.messages[0].content);
         }
