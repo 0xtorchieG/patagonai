@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Blobbie, useActiveAccount } from "thirdweb/react";
 
 export default function ChatSection() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
     initialMessages: [
       {
         id: "welcome",
@@ -22,7 +22,58 @@ export default function ChatSection() {
       }
     ]
   });
+
   const account = useActiveAccount();
+  const [loading, setLoading] = useState(false);
+
+  const handleSendMessage = async (event: React.FormEvent) => {
+    event.preventDefault();
+  
+    if (!input.trim()) return;
+  
+    // Save user input before sending
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: "user" as const,
+      content: input,
+    };
+  
+    setLoading(true);
+  
+    try {
+      // ✅ Fix: Add user message manually so it appears instantly
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+  
+      const res = await fetch('/api/agent', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input })
+      });
+  
+      if (!res.ok) throw new Error('Network response was not ok');
+  
+      const data = await res.json();
+  
+      // AI response message
+      const aiResponse = {
+        id: `ai-${Date.now()}`,
+        role: "assistant" as const,
+        content: data.response, 
+      };
+  
+      // ✅ Fix: Append AI response while keeping user messages
+      setMessages((prevMessages) => [...prevMessages, aiResponse]);
+  
+      // ✅ Fix: Clear input field after sending
+      handleInputChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
 
   return (
     <div className="w-1/2 h-screen flex flex-col bg-base-100 border-r border-base-300">
@@ -51,9 +102,7 @@ export default function ChatSection() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`chat ${
-              message.role === "user" ? "chat-end" : "chat-start"
-            }`}
+            className={`chat ${message.role === "user" ? "chat-end" : "chat-start"}`}
           >
             <div className="chat-image avatar">
               {message.role === "user" ? (
@@ -75,11 +124,7 @@ export default function ChatSection() {
                 </div>
               )}
             </div>
-            <div className={`chat-bubble ${
-              message.role === "user" 
-                ? "chat-bubble-primary" 
-                : "bg-base-200"
-            }`}>
+            <div className={`chat-bubble ${message.role === "user" ? "chat-bubble-primary" : "bg-base-200"}`}>
               {message.content}
             </div>
             <div className="chat-footer opacity-50 text-xs">
@@ -87,10 +132,26 @@ export default function ChatSection() {
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="chat chat-start">
+            <div className="chat-image avatar">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <Image
+                  src="/agent-banker.png"
+                  alt="AI Agent"
+                  width={40}
+                  height={40}
+                  className="object-cover"
+                />
+              </div>
+            </div>
+            <div className="chat-bubble bg-base-200">Thinking...</div>
+          </div>
+        )}
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-base-300 bg-base-200">
+      <form onSubmit={handleSendMessage} className="p-4 border-t border-base-300 bg-base-200">
         <div className="join w-full">
           <input
             value={input}
@@ -112,4 +173,4 @@ export default function ChatSection() {
       </form>
     </div>
   );
-} 
+}
