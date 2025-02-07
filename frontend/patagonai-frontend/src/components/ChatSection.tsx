@@ -1,9 +1,30 @@
 import { useState } from "react";
 import { useChat } from "ai/react";
 import Image from "next/image";
-import { Blobbie, useActiveAccount } from "thirdweb/react";
+import { Blobbie, useActiveAccount, useReadContract, useSendTransaction } from "thirdweb/react";
+import { getContract, prepareContractCall, sendTransaction, readContract, sendAndConfirmTransaction } from "thirdweb";
+import { baseSepolia } from "thirdweb/chains";
+import { client } from "../app/client";
+
+const PREDICTION_MARKET_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+
+
+const contract = getContract({
+  client,
+  address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS!,
+  chain: baseSepolia,
+});
+
+const usdcContract = getContract({
+  client,
+  address: process.env.NEXT_PUBLIC_USDC_CONTRACT!,
+  chain: baseSepolia,
+});
+
+
 
 export default function ChatSection() {
+  const { mutate: sendTransaction } = useSendTransaction();
   const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
     initialMessages: [
       {
@@ -63,6 +84,99 @@ export default function ChatSection() {
   
       // ✅ Fix: Append AI response while keeping user messages
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
+
+      // 🚀 **Check if response contains "ACTION_REQUIRED_TAKE_POSITION"**
+      if (data.response.includes("ACTION_REQUIRED_TAKE_POSITION")) {
+        const marketIdMatch = data.response.match(/marketId:\s*(\d+)/);
+        const positionMatch = data.response.match(/position:\s*(\d+)/);
+        const sharesMatch = data.response.match(/numberOfShares:\s*(\d+)/);
+
+        if (marketIdMatch && positionMatch && sharesMatch) {
+          const marketId = parseInt(marketIdMatch[1], 10);
+          const position = parseInt(positionMatch[1], 10);
+          const numberOfShares = parseInt(sharesMatch[1], 10);
+
+          console.log(`🎯 Executing takePosition for marketId: ${marketId}, position: ${position}, shares: ${numberOfShares}`);
+
+          // 🏦 **Check USDC Allowance**
+          const allowance = await readContract({
+            contract: usdcContract,
+            method:
+              "function allowance(address owner, address spender) view returns (uint256)",
+            params: [
+              account?.address || "", 
+              PREDICTION_MARKET_ADDRESS || ""],
+          });
+
+          console.log('USDC Allowance:', allowance?.toString());
+
+          // 🛑 If allowance is 0, approve spending before proceeding
+          if (Number(allowance) === 0) {
+            console.log("Approving USDC for spending...");
+
+              const transaction = await prepareContractCall({
+                contract: usdcContract,
+                method:
+                  "function approve(address spender, uint256 value) returns (bool)",
+                params: [PREDICTION_MARKET_ADDRESS || "", BigInt(10000000000000000000)],
+              });
+              const receipt = await sendAndConfirmTransaction({
+                transaction,
+                account: account!,
+              });
+              console.log("USDC approved successfully.");
+              console.log(receipt);
+          }
+
+          // ✅ **Now call takePosition()**
+          console.log("Sending transaction to takePosition...");
+
+          const transaction = await prepareContractCall({
+            contract,
+            method:
+              "function takePosition(uint256 marketId, uint8 position, uint256 numberOfShares)",
+            params: [BigInt(marketId), position, BigInt(numberOfShares)],
+          });
+          const receipt = await sendAndConfirmTransaction({
+            transaction,
+            account: account!,
+          });
+
+          console.log("🎉 Position taken!")
+          console.log(receipt);
+
+          // 📩 **Send confirmation message to chat**
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              id: `tx-${Date.now()}`,
+              role: "assistant" as const,
+              content: `✅ Position taken!\n\n🔗`,
+            }
+          ]);
+        }
+      }
+
+      // 🚀 **Check if response contains "ACTION_REQUIRED_CLAIM_REWARDS"**
+      if (data.response.includes("ACTION_REQUIRED_CLAIM_PAYOUT")) {
+        console.log("Claiming rewards...");
+
+        const marketIdMatch = data.response.match(/marketId:\s*(\d+)/);
+        const marketId = parseInt(marketIdMatch[1], 10);
+
+        const transaction = await prepareContractCall({
+          contract,
+          method:
+            "function claimPayout(uint256 marketId)",
+          params: [BigInt(marketId)],
+        });
+        const receipt = await sendAndConfirmTransaction({
+          transaction,
+          account: account!,
+        });
+
+        console.log(`🎉 Executing claimPayout for marketId: ${marketId}`);
+      }
   
       // ✅ Fix: Clear input field after sending
       handleInputChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
