@@ -2408,46 +2408,41 @@ async function runChatMode(agent: any, config: any) {
 if (require.main === module) {
   console.log("Starting Agent...");
   initializeAgent()
-    .then(({ agent, config }) => runChatMode(agent, config))
+    .then(({ agent, config }) => {
+      // Start the HTTP server
+      const app = express();
+      const PORT = process.env.PORT || 3000;
+
+      app.use(express.json());
+
+      app.post('/chat', async (req, res) => {
+        try {
+          // ... existing code ...
+          const { message } = req.body; // Directly access message from request body
+          
+          const stream = await agent.stream({ messages: [new HumanMessage(message)] }, config);
+          let response = '';
+          
+          for await (const chunk of stream) {
+            if ("agent" in chunk) {
+              response = chunk.agent.messages[0].content;
+            }
+          }
+          
+          res.json({ response });
+        } catch (error) {
+          console.error('Error handling chat request:', error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      });
+
+      app.listen(PORT, () => {
+        console.log(`Agent server running on port ${PORT}`);
+      });
+    })
     .catch(error => {
       console.error("Fatal error:", error);
       process.exit(1);
     });
 }
-
-// Add this at the end of the file, after all other code
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-app.post('/chat', async (req, res) => {
-  try {
-    // Validate request body against schema
-    const schema = z.object({
-      message: z.string()
-    });
-    
-    const { message } = schema.parse(req.body);
-    const { agent, config } = await initializeAgent();
-    
-    const stream = await agent.stream({ messages: [new HumanMessage(message)] }, config);
-    let response = '';
-    
-    for await (const chunk of stream) {
-      if ("agent" in chunk) {
-        response = chunk.agent.messages[0].content;
-      }
-    }
-    
-    res.json({ response });
-  } catch (error) {
-    console.error('Error handling chat request:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Agent server running on port ${PORT}`);
-});
 
