@@ -13,5 +13,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Start the agent using ts-node
+# Expose the port
+EXPOSE 3000
+
+# Start the agent server
 CMD ["npx", "ts-node", "src/my_agent.ts"] 

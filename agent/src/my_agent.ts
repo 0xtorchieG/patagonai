@@ -13,6 +13,8 @@ import { z } from "zod";
 import { Abi, getContractAddress } from "viem";
 import { PythStockFeedTool } from "./tools/PythStockFeedTool";
 import * as path from 'path';
+import express from 'express';
+
 
 dotenv.config();
 
@@ -2412,4 +2414,40 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+// Add this at the end of the file, after all other code
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+
+app.post('/chat', async (req, res) => {
+  try {
+    // Validate request body against schema
+    const schema = z.object({
+      message: z.string()
+    });
+    
+    const { message } = schema.parse(req.body);
+    const { agent, config } = await initializeAgent();
+    
+    const stream = await agent.stream({ messages: [new HumanMessage(message)] }, config);
+    let response = '';
+    
+    for await (const chunk of stream) {
+      if ("agent" in chunk) {
+        response = chunk.agent.messages[0].content;
+      }
+    }
+    
+    res.json({ response });
+  } catch (error) {
+    console.error('Error handling chat request:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Agent server running on port ${PORT}`);
+});
 
