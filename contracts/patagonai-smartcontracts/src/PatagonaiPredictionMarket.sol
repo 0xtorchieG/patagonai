@@ -51,21 +51,6 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         token = IERC20(_tokenAddress);
     }
 
-    modifier noActiveMarket(string memory stockTicker) {
-        bool hasActiveMarket = false;
-        for (uint256 i = 0; i < markets.length; i++) {
-            Market storage market = markets[i];
-            if (keccak256(bytes(market.stockTicker)) == keccak256(bytes(stockTicker)) && 
-                block.timestamp < market.endTime &&
-                market.outcome == MarketOutcome.UNDECIDED) {
-                hasActiveMarket = true;
-                break;
-            }
-        }
-        require(!hasActiveMarket, "Active market exists");
-        _;
-    }
-
     function createMarket(
         string memory _stockTicker,
         bytes32 _pythPriceId,
@@ -73,7 +58,7 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
         uint256 _buyConsensus,
         uint256 _holdConsensus,
         uint256 _sellConsensus
-    ) external onlyOwner noActiveMarket(_stockTicker) {
+    ) external onlyOwner {
         require(_endTime > block.timestamp, "End time must be future");
         
         PythStructs.Price memory currentPrice = pyth.getPriceNoOlderThan(_pythPriceId, 86400);
@@ -264,10 +249,12 @@ contract PatagonaiPredictionMarket is Ownable, ReentrancyGuard {
 
     // Check if an active market exists for a specific stock ticker
     function getActiveMarketId(string memory stockTicker) external view returns (uint256 marketId, bool exists) {
+        bytes32 tickerHash = keccak256(abi.encodePacked(stockTicker));
+        
         for (uint256 i = 0; i < markets.length; i++) {
             Market storage market = markets[i];
-            // Compare strings and check if market is still active
-            if (keccak256(bytes(market.stockTicker)) == keccak256(bytes(stockTicker)) && 
+            // Compare normalized hashes and check if market is still active
+            if (keccak256(abi.encodePacked(market.stockTicker)) == tickerHash && 
                 block.timestamp < market.endTime &&
                 market.outcome == MarketOutcome.UNDECIDED) {
                 return (i, true);
