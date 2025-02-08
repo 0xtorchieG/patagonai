@@ -84,12 +84,20 @@ export default function ChatSection() {
   
       // ✅ Fix: Append AI response while keeping user messages
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
-
+      console.log("AI response:", aiResponse);
       // 🚀 **Check if response contains "ACTION_REQUIRED_TAKE_POSITION"**
       if (data.response.includes("ACTION_REQUIRED_TAKE_POSITION")) {
-        const marketIdMatch = data.response.match(/marketId:\s*(\d+)/);
-        const positionMatch = data.response.match(/position:\s*(\d+)/);
-        const sharesMatch = data.response.match(/numberOfShares:\s*(\d+)/);
+        console.log("Taking position...");
+        console.log(data.response);
+        
+        // Updated regex patterns to handle multiline format
+        const marketIdMatch = data.response.match(/\*\*marketId:\*\*\s*(\d+)/);
+        const positionMatch = data.response.match(/\*\*position:\*\*\s*(\d+)/);
+        const sharesMatch = data.response.match(/\*\*numberOfShares:\*\*\s*(\d+)/);
+        
+        console.log("Market ID:", marketIdMatch);
+        console.log("Position:", positionMatch);
+        console.log("Shares:", sharesMatch);
 
         if (marketIdMatch && positionMatch && sharesMatch) {
           const marketId = parseInt(marketIdMatch[1], 10);
