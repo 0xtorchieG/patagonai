@@ -11,6 +11,7 @@
   "dependencies": {
     "ai": "^4.1.24",
     "daisyui": "^4.12.23",
+    "finnhub": "^1.2.19",
     "next": "14.1.0",
     "react": "^18.3",
     "react-dom": "^18.3",
